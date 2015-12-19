@@ -1,7 +1,7 @@
-import numpy
+import numpy as 	np
 import matplotlib
 import logging
-
+import os
 
 class statelogger():
 	
@@ -10,47 +10,78 @@ class statelogger():
 		self.filename = filename+str('.npy');
 		self.statenumber = 1;
 		self.all_states = []
-		self.logger = logging.getLogger("StateVariable Logger")
-		self.logger.setLevel(logging.INFO)
-
-    # create the logging file handler
-		fh = logging.FileHandler("statevar.log")
-
+		
+		self.logfile = 'statevar.log'
+		
+		a = open(self.logfile,'w+')
+		a.close()
+		
+		
+		self.logger = logging.getLogger("statelogger")
+		
+		
+		self.logger.setLevel(logging.INFO) #Set to Debug only to print every function call
+		
+		
+		self.fh = logging.FileHandler(self.logfile)
 		formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-		fh.setFormatter(formatter)
-
-    # add handler to logger object
-		self.logger.addHandler(fh)
+		self.fh.setFormatter(formatter)
+		self.logger.addHandler(self.fh)
+		
+		self.logger.info('**********STARTING***********')
+		self.logger.info('Logging to - *' + str(self.logfile) + '*')
 		self.logger.info('Recieved ' + str(self.no_variables) + ' variables')
 		self.logger.info('Starting Recording')
 
 		self.current_state = []
+		
+		
 		for i in range(len(args)):
 			self.current_state.append(np.array(args[i]));
-			#self.logger.info('Initiaez')
+		
+		self.all_states = self.current_state
 		
 		self.logger.info('Initialization Finished')
 		
 	def update_data(self):
+		logger_update_data = self.logger.getChild('update_data')
+		
 		for i in range(self.no_variables):
 			self.all_states[i] = np.vstack((self.all_states[i],self.current_state[i]))
+		logger_update_data.debug('Data Update successful')
+
 			
 	def write_to_file(self):
-		np.save(self.filename,self.all_data)
+		logger_write_to_file  = self.logger.getChild('write_to_file')
+		
+		np.save(self.filename,self.all_states)
+		logger_write_to_file.debug('Written to file succesfully')
+
+		
 			
 	def add_state(self,*args):
-		logger = logging.getLogger('statelogger.add_state')
-		logger.info('Recieved %s variables. Appending state.' len(args))
-		self.statenumber =+1
-		self.current_state = [];
-		for i in range(len(args)):
-			self.current_state.append(np.array(args[i]));
-		self.update_data();
-		self.write_to_file()
-		logger.info('Added State completely')
-	
+		logger_new_state = self.logger.getChild('add_state')
 		
-	def report_log_io():
+		logger_new_state.info('Recieved %s variables.' %(len(args)))
+		self.statenumber = self.statenumber+1
+		self.current_state = [];
+		
+		try:
+			for i in range(len(args)):
+				self.current_state.append(np.array(args[i]));
+			self.update_data()
+		except(ValueError,IndexError):
+			print('Inputted number of variables does not meet exisiting bank requirement');
+			logger_new_state.error('Inputted number of variables does not meet exisiting bank requirement')
+		else:
+			self.write_to_file()
+			logger_new_state.info('Added %s variables to bank' %(len(args)))
+	def close_logger(self):
+		self.logger.info('**********FINISEHD***********')
+		
+		self.logger.removeHandler(self.fh)
+		
+	#def report_log_io():
 		
 			
 		
