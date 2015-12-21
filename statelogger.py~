@@ -81,7 +81,7 @@ class statelogger():
 		
 		self.logger.removeHandler(self.fh)
 		
-	
+	#def report_log_io():
 		
 			
 		
