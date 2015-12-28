@@ -7,7 +7,9 @@ Module requirements:
 ```python
 import logging 
 import numpy
-import os```
+import os
+
+```
 
 [Logging Module Link](https://docs.python.org/2/library/logging.html)
 
